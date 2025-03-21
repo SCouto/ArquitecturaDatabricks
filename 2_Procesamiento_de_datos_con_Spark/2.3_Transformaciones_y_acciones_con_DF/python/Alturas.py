@@ -30,13 +30,14 @@
 
 # COMMAND ----------
 
-# MAGIC %scala
-# MAGIC //Ejercicio 2 Alturas
-# MAGIC lines_rdd = sc.textFile("dbfs:/FileStore/input/alturas")
-# MAGIC
+inputPath = "dbfs:/FileStore/input/alturas/alturas.csv"
 
 # COMMAND ----------
 
-#results_by_sex_rdd = ???
+from pyspark.sql.functions import col, when, round, avg
+from pyspark.sql.types import DoubleType
 
-#display(results_by_sex_rdd.toDF())
+
+avg_df = 
+
+display(avg_df)
