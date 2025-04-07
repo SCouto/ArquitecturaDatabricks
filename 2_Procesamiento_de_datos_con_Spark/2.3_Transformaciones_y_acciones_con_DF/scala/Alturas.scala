@@ -1,42 +1,112 @@
 // Databricks notebook source
 // MAGIC %md
-// MAGIC 
+// MAGIC
 // MAGIC # Alturas
-// MAGIC 
+// MAGIC
 // MAGIC El objetivo es calcular la altura media por sexo
-// MAGIC 
-// MAGIC * Sube el fichero alturas.csv en Databricks, está explicado en el tutorial de Databricks  
+// MAGIC
+// MAGIC * Sube el fichero alturas.csv en Databricks, seguramente ya lo tengas subido de ejercicios anteriores
 // MAGIC * Comprueba el fichero, verás que es de la siguiente forma:
-// MAGIC 
+// MAGIC
 // MAGIC ```
 // MAGIC H,178
 // MAGIC M,179
+// MAGIC H,1.6
 // MAGIC ```
-// MAGIC 
-// MAGIC * Por defecto el método textFile carga cada registro en una línea
-// MAGIC * El primer paso es dividir cada registro, utiliza el método map y un split por el separador (la coma)
-// MAGIC * Ahora tienes en cada registro un array, haz un nuevo map que genere en cada registro una tupla, con los dos campos del array
-// MAGIC   * Utiliza nombreQueLeDes(0) y nombreQueLeDes(1) para acceder a cada elemento de array
-// MAGIC * Busca los que vengan en metros en lugar de en centímetros y convíertelos
-// MAGIC   * Puedes buscar los que contentan un . 
-// MAGIC * Convierte la altura a Double para poder operar con ella
-// MAGIC * Filtra los datos erróneos (vacíos o negativos)
-// MAGIC * Agrega por clave utilizando groupByKey
-// MAGIC * Esto te devolverá un RDD de la siguiente forma:
-// MAGIC ```(k, List(values))```
-// MAGIC * Utiliza mapValues para trabajar con la lista y calcular la media
-// MAGIC   * Puedes utilizar sum para sumar los elementos de la lista
-// MAGIC   * Puedes utilizar size para calcular el número de elementos en la lista
+// MAGIC
+// MAGIC * Ahora debes usar otro método para cargar el fichero
+// MAGIC     * spark.read.csv
+// MAGIC * Este método ya sabe como separar los registros por lo que no necesitas hacer el split. (Si el separador fuese otro que no fuera la coma habría que indicárselo)
+// MAGIC * Utiliza el método WithColumn para actualizar la columna altura
+// MAGIC   * Debes usar el método [when](https://sparkbyexamples.com/spark/spark-case-when-otherwise-example/) a modo de if para bifurcar los casos que vengan en metros de los que vengan en centímetros
+// MAGIC   * Tendrás que convertir a Double, la sintaxis es $"columnName".cast(DoubleType)
+// MAGIC * Filtra los datos erróneos (vacíos o negativos) mediante el métdo where
+// MAGIC * Agrega por clave utilizando groupBy indicándole la columna de agregación
+// MAGIC * Usa la función agg y avg para obtener la media
 
 // COMMAND ----------
 
-//Ejercicio 2 Alturas
-val linesRDD = sc.textFile("dbfs:/FileStore/input/alturas")
+val inputPath = "dbfs:/FileStore/input/alturas/alturas.csv"
+
+// COMMAND ----------
+
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
+
+//Loading as String
+
+val avgDF = spark.read
+  .csv(inputPath)
+  .toDF(List("sexo", "altura"):_*)
+  .withColumn("altura", when($"altura".contains("."), $"altura".cast(DoubleType) * 100).otherwise($"altura".cast(DoubleType)))
+  .where($"altura" >0)
+  .groupBy($"sexo")
+  .agg(round(avg("altura"), 2).as("altura_media"))
+
+
+display(avgDF)
 
 
 // COMMAND ----------
 
-val resultsBySexRDD = ???
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
 
-              
-//display(resultsBySexRDD.toDF)
+//Alturas DF inferSchema
+
+
+
+val avgDF = ???
+
+display(avgDF)
+
+// COMMAND ----------
+
+// MAGIC %md
+// MAGIC
+// MAGIC # Alturas UDF
+// MAGIC * Genera ahora una UDF que reciba una columna con un valor de altura (como String o Double) y lo estandarice
+// MAGIC * Usa la UDF en lugar del engorroso when
+
+// COMMAND ----------
+
+//AlturasUDF
+
+
+val mToCMudf = udf((s: String) => {
+  if (s.contains("."))
+    s.toDouble * 100
+  else s.toDouble
+})
+
+import spark.implicits._
+
+val avgDF  = ???
+
+display(avgDF)
+
+// COMMAND ----------
+
+// MAGIC %md
+// MAGIC
+// MAGIC # Alturas SQL
+// MAGIC * Registra la tabla como vista dentro de la sparkSession
+// MAGIC * Copia/Usa la UDF del ejercicio anterior
+// MAGIC * Registra la UDF con spark.sqlContext.udf.register
+// MAGIC * Ejecuta una query para calcular la media
+
+// COMMAND ----------
+
+//Alturas SQL
+
+
+val rawDF = ???
+
+spark.sqlContext.udf.register("mToCMUDF", mToCMudf)
+
+
+val avgDF = ???
+
+
+display(avgDF)
+
