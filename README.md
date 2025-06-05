@@ -1,4 +1,7 @@
-# Project Name
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SCouto/ArquitecturaDatabricks)
+
+# Arquitectura Databricks
 
 This repository contains Databricks notebooks for practicing data analysis and processing using both Python and Scala. The project provides both unsolved and solved versions of the notebooks, so you can practise without the solution and then check it if you are blocked. 
 
